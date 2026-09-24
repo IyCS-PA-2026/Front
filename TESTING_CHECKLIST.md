@@ -25,7 +25,19 @@ Son la base de todo. Si algo falla acá, va a romper en cascada.
 - [ ] **Marcas** → listar, crear
 - [ ] **Líneas / Sublíneas** → listar
 - [ ] **Unidades de medida** → listar
-- [ ] **Presentaciones** → listar
+- [ ] **Producto con presentación (CR-002)** → ver sección 2.1
+
+### 2.1 CR-002 — Presentación de producto
+
+Automatizado: `yarn test` (Vitest + React Testing Library). Verificación manual contra el backend:
+
+- [ ] Crear producto con presentación decimal (ej. `0,5` + `Kg`) → se registra y el backend guarda `presentacion: { cantidad: 0.5, unidadMedida: "Kg" }`
+- [ ] Crear producto sin cantidad o sin unidad de medida → muestra error y no envía
+- [ ] Unidad de medida con solo espacios → muestra error
+- [ ] Cantidad con 3 decimales (ej. `1,125`) → se acepta; el input no permite un 4º decimal
+- [ ] Unidad de medida con mayúsculas/minúsculas mezcladas (ej. `mL`) → se guarda tal cual
+- [ ] Editar producto → carga cantidad y unidad existentes; al modificarlas se envía la presentación completa
+- [ ] El formulario ya no muestra checkbox ni campo "Cantidad Pack"
 
 ---
 

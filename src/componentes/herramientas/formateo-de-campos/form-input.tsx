@@ -5,7 +5,7 @@ import { useMask } from "@react-input/mask";
 
 type FormInputProps = {
   name: string;
-  label: string;
+  label?: string;
   placeholder?: string;
   type?: string;
   className?: string;
@@ -49,9 +49,11 @@ export default function FormInput({
 
   return (
     <div className={`space-y-1 sm:space-y-2 ${className || ""}`}>
-      <Label htmlFor={name} className="label-base">
-        {label}
-      </Label>
+      {label && (
+        <Label htmlFor={name} className="label-base">
+          {label}
+        </Label>
+      )}
       <div className="relative">
         <Controller
           name={name}

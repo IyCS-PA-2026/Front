@@ -2,13 +2,13 @@ import axios from "axios";
 import axiosConfig from "../../../../utils/axiosConfig";
 
 import { createCrudService } from "../../../../utils/crudFactory";
-import { FormValues } from "../interfaces/interfaces-validaciones-item-prod-alternativo";
+import { ProductoPayload } from "../interfaces/interfaces-validaciones-producto";
 import ApiService from "../../../../utils/apiService";
 
 
 const apiUrl = axiosConfig.apiUrl;
 
-const baseService = createCrudService<FormValues>("producto");
+const baseService = createCrudService<ProductoPayload>("producto");
 
 const ProductoService = {
   ...baseService,

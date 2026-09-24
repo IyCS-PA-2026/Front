@@ -1,7 +1,7 @@
 import * as yup from "yup";
 import { ItemsProdAlternativoEnPayload } from "./interfaces-validaciones-item-prod-alternativo";
 import { AlicuotaIva } from "../../../../interfaces/generales/interfaces-generales";
-import { Producto } from "../../../../interfaces/gestion-producto/producto/interfaces-producto";
+import { PresentacionProducto, Producto } from "../../../../interfaces/gestion-producto/producto/interfaces-producto";
 import { ItemProveedor } from "../../../../interfaces/gestion-producto/producto/interfaces-item-proveedor";
 import { ItemProdAlternativo } from "../../../../interfaces/gestion-producto/producto/interfaces-item-prod-alternativo";
 
@@ -25,12 +25,13 @@ export interface FormValues {
   marcaId: number;
   /* subLineaId?: number | null */
   alicuotaIva: number | null;
-  /* ubicacion?: string | null;
-  presentacionId: number; */
+  // ubicacion?: string | null;
   stockMinimo?: number;
-  cantidadPorPack?: number;
   utilizaStockMinimo?: boolean;
-  utilizaPack?: boolean;
+  // CR-002: campos planos porque los inputs compartidos no muestran errores anidados;
+  // se arman como `presentacion` en construirPayloadProducto.
+  presentacionCantidad: number;
+  presentacionUnidadMedida: string;
  /*  porcentajeOcasional: number;
   precioOcasional: number;
   porcentajeMayorista: number;
@@ -48,9 +49,24 @@ export interface ItemsProveedorEnPayload {
   usuarioCreatedId: number;
 }
 
+export type ProductoPayload = Omit<FormValues, "presentacionCantidad" | "presentacionUnidadMedida"> & {
+  presentacion: PresentacionProducto;
+  usuarioCreatedId?: number;
+  usuarioUpdatedId?: number;
+};
+
+// Coherente con decimal(12,3) del backend
+export const PRESENTACION_CANTIDAD_DECIMALES = 3;
+export const PRESENTACION_CANTIDAD_MAXIMA = 999999999.999;
+
+const tieneHastaTresDecimales = (value: number) => {
+  const escalado = value * 10 ** PRESENTACION_CANTIDAD_DECIMALES;
+  return Math.abs(escalado - Math.round(escalado)) < 1e-6;
+};
+
 //===================== schema de validacion ============================================//
 
-export const schema = (utilizaStockMinimo: boolean, utilizaPack: boolean, usaOferta: boolean) =>
+export const schema = (utilizaStockMinimo: boolean, usaOferta: boolean) =>
   yup.object().shape({
     denominacion: yup
       .string()
@@ -93,10 +109,6 @@ export const schema = (utilizaStockMinimo: boolean, utilizaPack: boolean, usaOfe
       .required("La alícuota IVA es obligatoria.")
       .nullable(),
     /* ubicacion: yup.string().optional().max(255, "Máximo 255 caracteres.").nullable(),
-    presentacionId: yup
-      .number()
-      .typeError("La unidad de medida es obligatoria.")
-      .required("La unidad de medida es obligatoria."),
     subLineaId: yup
     .number()
     .typeError("La sublinea es obligatoria.")
@@ -107,17 +119,25 @@ export const schema = (utilizaStockMinimo: boolean, utilizaPack: boolean, usaOfe
       then: (schema) => schema.required("El Stock minimo es obligatorio.").moreThan(0, "El stock minimo debe ser mayor a 0."),
       otherwise: (schema) => schema.optional(),
     }),
-    cantidadPorPack: yup.number().when([], {
-      is: () => utilizaPack,
-      then: (schema) => schema.required("La cantidad por pack es obligatoria.").moreThan(0, "La cantidad por pack debe ser mayor a 0."),
-      otherwise: (schema) => schema.optional(),
-    }),
+    presentacionCantidad: yup
+      .number()
+      .typeError("La cantidad de la presentación debe ser un valor numérico.")
+      .required("La cantidad de la presentación es obligatoria.")
+      .moreThan(0, "La cantidad de la presentación debe ser mayor a 0.")
+      .max(PRESENTACION_CANTIDAD_MAXIMA, "La cantidad de la presentación supera el máximo permitido.")
+      .test("max-decimales", "La cantidad de la presentación admite como máximo 3 decimales.", (value) =>
+        value == null ? true : tieneHastaTresDecimales(value),
+      ),
+    // Texto libre: sin trim ni cambio de mayúsculas/minúsculas, se conserva lo ingresado.
+    presentacionUnidadMedida: yup
+      .string()
+      .required("La unidad de medida es obligatoria.")
+      .test("no-vacia", "La unidad de medida es obligatoria.", (value) => (value ?? "").trim().length > 0),
    /*  cantidadOferta: yup.number().when([], {
       is: () => usaOferta,
       then: (schema) => schema.required("La cantidad de oferta es obligatoria.").moreThan(0, "La cantidad de oferta debe ser mayor a 0."),
       otherwise: (schema) => schema.optional(),
     }), */
-    utilizaPack: yup.boolean().optional(),
     utilizaStockMinimo: yup.boolean().optional(),
     /* porcentajeOcasional: yup
       .number()
@@ -176,13 +196,11 @@ export const transformData = (producto: Producto): FormValues => {
    // ubicacion: producto.ubicacion ?? null,
     marcaId: producto.marca.id ?? 0,
     lineaId: producto.linea.id ?? 0,
-   /*  subLineaId: producto.sublinea?.id ?? 0,
-    presentacionId: producto.presentacion.id ?? 0,
- */
+   //  subLineaId: producto.sublinea?.id ?? 0,
     stockMinimo: producto.stockMinimo ?? null,
-    cantidadPorPack: producto.cantidadPorPack ?? null,
     utilizaStockMinimo: producto.utilizaStockMinimo,
-    utilizaPack: producto.utilizaPack,
+    presentacionCantidad: producto.presentacion.cantidad,
+    presentacionUnidadMedida: producto.presentacion.unidadMedida,
  //   cantidadOferta: producto.cantidadOferta ?? 0,
    /*  porcentajeOcasional: producto.porcentajeOcasional ?? 0,
     porcentajeMayorista: producto.porcentajeMayorista ?? 0,
@@ -195,7 +213,19 @@ export const transformData = (producto: Producto): FormValues => {
   };
 };
 
-export const transformarItemsProveedor = (items: ItemProveedor[]): ItemsProveedorEnPayload[] => {
+// CR-002: la presentación se envía siempre completa, tanto en alta como en actualización.
+export const construirPayloadProducto = (formData: FormValues): ProductoPayload => {
+  const { presentacionCantidad, presentacionUnidadMedida, ...resto } = formData;
+  return {
+    ...resto,
+    presentacion: {
+      cantidad: presentacionCantidad,
+      unidadMedida: presentacionUnidadMedida,
+    },
+  };
+};
+
+export const transformarItemsProveedor =(items: ItemProveedor[]): ItemsProveedorEnPayload[] => {
   return items.map((item) => ({
     id: item.id,
     codigoProveedor: item.codigoProveedor,

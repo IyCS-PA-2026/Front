@@ -4,6 +4,12 @@ import { SelectSublinea } from "../sublinea/interfaces-sublinea";
 import { ItemProdAlternativo } from "./interfaces-item-prod-alternativo";
 import { ItemProveedor } from "./interfaces-item-proveedor";
 
+// CR-002: presentación del producto (reemplaza utilizaPack / cantidadPorPack)
+export interface PresentacionProducto {
+  cantidad: number;
+  unidadMedida: string;
+}
+
 export interface Producto {
   //
   id: number;
@@ -45,13 +51,11 @@ export interface Producto {
   precioMayoristaConIva: number;
   precioClienteConIva: number;
   precioOfertaConIva: number;
-  presentacion: SelectPresentacion;
   itemsProveedor?: ItemProveedor[] | null;
  */
   stockMinimo: number;
-  cantidadPorPack: number;
   utilizaStockMinimo: boolean;
-  utilizaPack: boolean;
+  presentacion: PresentacionProducto;
  // oferta: boolean;
  // cantidadOferta: number;
  /*  porcentajeOcasional: number;
@@ -165,8 +169,7 @@ export interface ProductoSeleccionado {
   porcentajeMayorista: number;
   porcentajeCliente: number;
   porcentajeOferta: number;
-  utilizaPack: boolean;
-  cantidadPorPack: number;
+  presentacion: PresentacionProducto;
   utilizaStockMinimo: boolean;
   stockMinimo: number;
   cantidadOferta: number;

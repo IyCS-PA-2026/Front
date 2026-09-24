@@ -6,7 +6,7 @@ import { useFormContext } from "react-hook-form";
 interface DoubleInputProps {
   name: string;
   label?: string;
-  value: number;
+  value: number | null;
   disabled?: boolean;
   className?: string;
   onChange: (value: number) => void;
@@ -14,10 +14,13 @@ interface DoubleInputProps {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   inputRef?: React.Ref<HTMLInputElement>;
   maxDigits?: number;
+  decimalScale?: number;
+  placeholder?: string;
+  fixedDecimalScale?: boolean;
 }
 
 const DoubleInput = forwardRef<HTMLInputElement, DoubleInputProps>(
-  ({ name, label, value, disabled, className, onChange, onBlur,onKeyDown, maxDigits }, ref) => {
+  ({ name, label, value, disabled, className, onChange, onBlur,onKeyDown, maxDigits, decimalScale = 2, placeholder, fixedDecimalScale = true }, ref) => {
     const {
       formState: { errors },
     } = useFormContext();
@@ -55,9 +58,10 @@ const DoubleInput = forwardRef<HTMLInputElement, DoubleInputProps>(
             onBlur={onBlur}
             value={value}
             name={name}
+            placeholder={placeholder}
             thousandSeparator="."
             decimalSeparator=","
-            decimalScale={2}
+            decimalScale={decimalScale}
             disabled={disabled}
             isAllowed={(values) => {
               if (!maxDigits) return true;
@@ -65,7 +69,7 @@ const DoubleInput = forwardRef<HTMLInputElement, DoubleInputProps>(
               const currentValue = values.floatValue ?? 0;
               return currentValue <= maxValue;
             }}
-            fixedDecimalScale
+            fixedDecimalScale={fixedDecimalScale}
             allowNegative={false}
             onValueChange={(values) => {
               onChange(values.floatValue ?? 0); // si es undefined, setea 0

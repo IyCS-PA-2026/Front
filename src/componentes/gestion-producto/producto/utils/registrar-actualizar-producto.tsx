@@ -9,7 +9,8 @@ import { Card } from "../../../ui/Card";
 import ProductoService from "../services/producto-service";
 import PriceInput from "../../../herramientas/formateo-de-campos/price-input";
 import CantidadesInput from "../../../herramientas/formateo-de-campos/cantidades-input";
-import { Producto, SelectPresentacion } from "../../../../interfaces/gestion-producto/producto/interfaces-producto";
+import { Producto } from "../../../../interfaces/gestion-producto/producto/interfaces-producto";
+import DoubleInput from "../../../herramientas/formateo-de-campos/double-input";
 import { SelectMarca } from "../../../../interfaces/gestion-producto/marca/interfaces-marca";
 import { Linea, SelectLinea } from "../../../../interfaces/gestion-producto/linea/interfaces-linea";
 import { AlicuotaIva, ResponsePost } from "../../../../interfaces/generales/interfaces-generales";
@@ -22,7 +23,14 @@ import RegistrarActualizarMarcaForm from "../../marca/utils/registrar-actualizar
 import { ItemProveedor } from "../../../../interfaces/gestion-producto/producto/interfaces-item-proveedor";
 import { SelectSublinea } from "../../../../interfaces/gestion-producto/sublinea/interfaces-sublinea";
 import { ItemsProveedorEnPayload } from "../interfaces/interfaces-validaciones-item-proveedor";
-import { FormValues, schema, transformData, transformarItemsProdAlternativo } from "../interfaces/interfaces-validaciones-producto";
+import {
+  FormValues,
+  PRESENTACION_CANTIDAD_DECIMALES,
+  construirPayloadProducto,
+  schema,
+  transformData,
+  transformarItemsProdAlternativo,
+} from "../interfaces/interfaces-validaciones-producto";
 import LineasSelector from "../componentes/configuracion/lineas-selector";
 import EncabezadoFormularios from "../../../ui/encabezadoFormularios";
 import MarcasSelector from "../componentes/configuracion/marcas-selector";
@@ -45,14 +53,13 @@ export default function RegistrarActualizarProductoForm({
 
   const { configuracion } = useConfiguracionSistema();
   const [rStockCritico, setStockCritico] = useState(false);
-  const [pack, setPack] = useState(false);
   const [usaOferta, setUsaOferta] = useState(false);
   const [lineaSeleccionada, setLineaSeleccionada] = useState<Linea>({} as Linea);
 
   console.log("Configuración del sistema:", configuracion);
 
   const methods = useForm<FormValues>({
-    resolver: yupResolver(schema(rStockCritico, pack, usaOferta)),
+    resolver: yupResolver(schema(rStockCritico, usaOferta)),
     defaultValues: producto
       ? transformData(producto)
       : {
@@ -87,9 +94,8 @@ export default function RegistrarActualizarProductoForm({
 
   const stock = watch(`stock`);
   const stockMinimo = watch("stockMinimo");
-  const cantidadPorPack = watch("cantidadPorPack");
   const utilizaStockMinimo = watch("utilizaStockMinimo");
-  const utilizaPack = watch("utilizaPack");
+  const presentacionCantidad = watch("presentacionCantidad");
   
 
   //=============================== CONSTANTES PARA MOVIMIENTO ENTRE CAMPOS ==================================
@@ -116,11 +122,8 @@ export default function RegistrarActualizarProductoForm({
     if (!utilizaStockMinimo) {
       setValue("stockMinimo", 0);
     }
-    if (!utilizaPack) {
-      setValue("cantidadPorPack", 0);
-    }
-    
-  }, [utilizaStockMinimo, utilizaPack, false, setValue]);
+
+  }, [utilizaStockMinimo, false, setValue]);
 
   useEffect(() => {
     setValue("stockMinimo", lineaSeleccionada.stockMinimo || 0);
@@ -128,10 +131,9 @@ export default function RegistrarActualizarProductoForm({
   }, [lineaSeleccionada]);
 
   useEffect(() => {
-    setPack(utilizaPack || false);
     setStockCritico(utilizaStockMinimo || false);
     setUsaOferta(false);
-  }, [utilizaPack, utilizaStockMinimo, false]);
+  }, [utilizaStockMinimo, false]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,8 +158,8 @@ export default function RegistrarActualizarProductoForm({
 
           setValue("stockMinimo", producto.stockMinimo || 0);
           setValue("utilizaStockMinimo", producto.utilizaStockMinimo || false);
-          setValue("cantidadPorPack", producto.cantidadPorPack || 0);
-          setValue("utilizaPack", producto.utilizaPack || false);
+          setValue("presentacionCantidad", producto.presentacion.cantidad);
+          setValue("presentacionUnidadMedida", producto.presentacion.unidadMedida);
         
           console.error("llega aca", producto);
         
@@ -191,14 +193,14 @@ export default function RegistrarActualizarProductoForm({
 
       if (producto) {
         const payload = {
-          ...formData,
+          ...construirPayloadProducto(formData),
           usuarioUpdatedId: usuarioId,
         };
 
         response = await ProductoService.actualizar(producto.id, payload);
       } else {
         const payload = {
-          ...formData,
+          ...construirPayloadProducto(formData),
           usuarioCreatedId: usuarioId,
         };
 
@@ -483,25 +485,30 @@ export default function RegistrarActualizarProductoForm({
 
                   
 
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-1 min-w-[140px]">
-                    <div className="col-span-full flex flex-wrap gap-4 mt-8">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          {...methods.register("utilizaPack")}
-                          className={`w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500`}
-                          disabled={producto && producto.sistema > 0 ? true : false}
+                  {/* CR-002: presentación (cantidad decimal + unidad de medida en texto libre) */}
+                  <div role="group" aria-labelledby="presentacion-label" className="flex flex-col gap-1 flex-1 min-w-[140px]">
+                    <span id="presentacion-label" className="text-sm font-medium text-gray-700">
+                      Presentación
+                    </span>
+                    <div className="flex items-start gap-2">
+                      <div className="w-32">
+                        <DoubleInput
+                          name="presentacionCantidad"
+                          value={presentacionCantidad || null}
+                          placeholder="Ingresa la cantidad"
+                          decimalScale={PRESENTACION_CANTIDAD_DECIMALES}
+                          fixedDecimalScale={false}
+                          maxDigits={9}
+                          onChange={(value) => setValue("presentacionCantidad", value, { shouldValidate: true })}
                         />
-                      </label>
-                    </div>
+                      </div>
 
-                    <CantidadesInput
-                      name={`cantidadPorPack`}
-                      label="Cantidad Pack"
-                      value={cantidadPorPack || 0}
-                      onChange={(value) => setValue(`cantidadPorPack`, Number(value))}
-                      disabled={utilizaPack ? false : true}
-                    />
+                      <FormInput
+                        name="presentacionUnidadMedida"
+                        placeholder="Ingresa la unidad"
+                        className="flex-1"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
