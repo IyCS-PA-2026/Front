@@ -8,7 +8,7 @@ import { ItemProdAlternativo } from "../../../../interfaces/gestion-producto/pro
 //===================== interfaces para las cosas que se van a ingresar en el formulario y es necesario validarlas ==========//
 
 export interface FormValues {
-  denominacion: string;
+  denominacion?: string;
   observacion?: string | null;
   codigoProveedor?: string | null;
   codigoReferencia?: string | null;
@@ -66,13 +66,18 @@ const tieneHastaTresDecimales = (value: number) => {
 
 //===================== schema de validacion ============================================//
 
-export const schema = (utilizaStockMinimo: boolean, usaOferta: boolean) =>
+export const schema = (utilizaStockMinimo: boolean, usaOferta: boolean, esEdicion = false) =>
   yup.object().shape({
     denominacion: yup
       .string()
       .trim()
       .lowercase()
-      .required("La denominación es obligatoria.")
+      .transform((value) => (value === "" ? undefined : value))
+      .when([], {
+        is: () => esEdicion,
+        then: (schema) => schema.required("La denominacion es obligatoria."),
+        otherwise: (schema) => schema.optional(),
+      })
       .max(255, "Máximo 255 caracteres.")
       .matches(/^[A-Za-z0-9 %-_"'áéíóúÁÉÍÓÚñÑ./]+$/, "Solo se permiten letras, números y espacios."),
     observacion: yup.string().optional().nullable(),

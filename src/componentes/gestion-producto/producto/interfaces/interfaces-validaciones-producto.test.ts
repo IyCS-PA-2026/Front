@@ -19,6 +19,7 @@ const formValido = (overrides: Partial<FormValues> = {}): FormValues => ({
 });
 
 const validar = (values: object) => schema(false, false).validate(values, { abortEarly: false });
+const validarEdicion = (values: object) => schema(false, false, true).validate(values, { abortEarly: false });
 
 const erroresDe = async (values: object) => {
   try {
@@ -30,6 +31,22 @@ const erroresDe = async (values: object) => {
 };
 
 describe("schema de producto - presentación (CR-002)", () => {
+  it.each([
+    ["ausente", undefined],
+    ["vacía", ""],
+    ["solo espacios", "   "],
+  ])("permite denominación %s durante el alta", async (_, denominacion) => {
+    await expect(validar(formValido({ denominacion }))).resolves.toBeTruthy();
+  });
+
+  it.each([
+    ["ausente", undefined],
+    ["vacía", ""],
+    ["solo espacios", "   "],
+  ])("rechaza denominación %s durante la edición", async (_, denominacion) => {
+    await expect(validarEdicion(formValido({ denominacion }))).rejects.toBeTruthy();
+  });
+
   it.each([0.5, 0.75, 1.5, 1, 12.125])("acepta cantidad %s", async (cantidad) => {
     await expect(validar(formValido({ presentacionCantidad: cantidad }))).resolves.toBeTruthy();
   });
@@ -132,5 +149,12 @@ describe("construirPayloadProducto (CR-002)", () => {
     expect(payload).not.toHaveProperty("utilizaPack");
     expect(payload).not.toHaveProperty("cantidadPorPack");
     expect(payload.denominacion).toBe("yerba mate");
+  });
+
+  it("permite enviar el alta sin denominación manual", () => {
+    const payload = construirPayloadProducto(formValido({ denominacion: undefined }));
+
+    expect(payload.denominacion).toBeUndefined();
+    expect(payload.presentacion).toEqual({ cantidad: 1, unidadMedida: "Kg" });
   });
 });
