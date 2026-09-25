@@ -410,7 +410,8 @@ export default function ConsultarProductos() {
       marcaId: valoresFiltros.marcaId,
       proveedorId: valoresFiltros.proveedorId,
       conStock: valoresFiltros.conStock,
-      skip: skip,
+      // Una búsqueda nueva siempre arranca en la primera página (resetearPaginacion es asíncrono)
+      skip: botonBuscar ? 0 : skip,
       take: take,
     };
 
