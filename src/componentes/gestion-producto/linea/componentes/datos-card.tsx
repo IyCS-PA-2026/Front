@@ -2,6 +2,7 @@ import type { Linea } from "../../../../interfaces/gestion-producto/linea/interf
 import { Info, Pencil, Trash } from "lucide-react";
 import { ActionButton } from "../../../herramientas/reutilizables/action-button";
 import { formatFechaHora } from "../../../herramientas/formateo-de-campos/fucion-formateo";
+import { denominacionSuperLinea } from "../interfaces/interfaces-validaciones-linea";
 
 interface Props {
   linea: Linea;
@@ -29,6 +30,11 @@ export function DatosCards({ linea, onEditar, onInfo, onDelete }: Props) {
             Eliminada el {formatFechaHora(linea.deletedAt)}
           </p>
         )}
+      </div>
+
+      <div className="mb-2">
+        <p className="text-xs text-gray-500">SuperLínea</p>
+        <p className="text-sm text-gray-700 line-clamp-2">{denominacionSuperLinea(linea)}</p>
       </div>
 
       {linea.observacion && (

@@ -1,23 +1,22 @@
-import { Info, Pencil, Trash } from "lucide-react";
+import { Pencil, Trash } from "lucide-react";
 import { TablaAGGrid, type Column } from "../../../herramientas/tablas/tabla-flexible-ag-grid";
 import {
   denominacionNotScrollColumnProps,
   observacionesColumnProps,
 } from "../../../herramientas/tablas/formateo-columnas-documentos";
-import type { Linea } from "../../../../interfaces/gestion-producto/linea/interfaces-linea";
+import type { SuperLinea } from "../../../../interfaces/gestion-producto/superlinea/interfaces-superlinea";
 import { ActionButton } from "../../../herramientas/reutilizables/action-button";
 import { formatFechaHora } from "../../../herramientas/formateo-de-campos/fucion-formateo";
-import { denominacionSuperLinea } from "../interfaces/interfaces-validaciones-linea";
+import { esSuperLineaSistema } from "../interfaces/interfaces-validaciones-superlinea";
 
 interface Props {
-  lineas: Linea[];
-  onEditar: (id: number) => void;
-  onInfo: (id: number) => void;
-  onDelete: (id: number) => void;
+  superLineas: SuperLinea[];
+  onEditar: (superLinea: SuperLinea) => void;
+  onDelete: (superLinea: SuperLinea) => void;
 }
 
-export function DatosTabla({ lineas, onEditar, onInfo, onDelete }: Props) {
-  const columns: Column<Linea>[] = [
+export function DatosTabla({ superLineas, onEditar, onDelete }: Props) {
+  const columns: Column<SuperLinea>[] = [
     {
       header: "Denominación",
       accessor: "denominacion",
@@ -26,18 +25,10 @@ export function DatosTabla({ lineas, onEditar, onInfo, onDelete }: Props) {
         <div className="flex flex-col">
           <span>{value}</span>
           {row.deletedAt && (
-            <span className="text-xs text-red-500 font-medium">
-              Eliminada el {formatFechaHora(row.deletedAt)}
-            </span>
+            <span className="text-xs text-red-500 font-medium">Eliminada el {formatFechaHora(row.deletedAt)}</span>
           )}
         </div>
       ),
-    },
-    {
-      header: "SuperLínea",
-      accessor: "superLinea",
-      ...observacionesColumnProps,
-      formatFunction: ({ row }) => <span>{denominacionSuperLinea(row)}</span>,
     },
     {
       header: "Observación",
@@ -49,26 +40,30 @@ export function DatosTabla({ lineas, onEditar, onInfo, onDelete }: Props) {
   return (
     <TablaAGGrid
       columns={columns}
-      data={lineas}
+      data={superLineas}
       getRowClass={(params: any) =>
         params.data?.deletedAt ? "opacity-50 bg-gray-100 dark:bg-slate-800 pointer-events-none" : ""
       }
-      actions={(row: Linea) => {
+      actions={(row: SuperLinea) => {
         if (row.deletedAt) return <div className="w-full" />;
+
+        const sistema = esSuperLineaSistema(row);
 
         return (
           <div className="flex justify-end gap-1">
-            <ActionButton variant="info" title="Ver información" onClick={() => onInfo(row.id)}>
-              <Info size={16} />
-            </ActionButton>
-            <ActionButton variant="edit" title="Editar" onClick={() => onEditar(row.id)}>
+            <ActionButton
+              variant="edit"
+              title={sistema ? "Las SuperLíneas de sistema no se pueden editar" : "Editar"}
+              disabled={sistema}
+              onClick={() => onEditar(row)}
+            >
               <Pencil size={16} />
             </ActionButton>
             <ActionButton
               variant="delete"
-              title="Eliminar"
-              disabled={row.sistema}
-              onClick={() => onDelete(row.id)}
+              title={sistema ? "Las SuperLíneas de sistema no se pueden eliminar" : "Eliminar"}
+              disabled={sistema}
+              onClick={() => onDelete(row)}
             >
               <Trash size={16} />
             </ActionButton>
