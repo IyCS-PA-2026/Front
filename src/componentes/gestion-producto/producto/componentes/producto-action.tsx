@@ -2,10 +2,7 @@ import {
   Info,
   Pencil,
   Trash,
-  Tag,
-  Layers,
   History,
-  Bell,
 } from "lucide-react";
 import type { ConsultarProducto } from "../../../../interfaces/gestion-producto/producto/interfaces-producto";
 import { ActionButton } from "../../../herramientas/reutilizables/action-button";
@@ -17,6 +14,8 @@ interface Props {
   onEditar: (id: number) => void;
   onInfo: (id: number) => void;
   onDelete: (id: number) => void;
+  // CR-007
+  onHistorial?: (id: number) => void;
 
   compact?: boolean;
 }
@@ -26,6 +25,7 @@ export function ProductoActions({
   onEditar,
   onInfo,
   onDelete,
+  onHistorial,
  
   compact = false,
 }: Props) {
@@ -46,6 +46,16 @@ export function ProductoActions({
       >
         <Pencil size={16} />
       </ActionButton>
+
+      {onHistorial && (
+        <ActionButton
+          variant="info"
+          title="Historial de precios"
+          onClick={() => onHistorial(producto.id)}
+        >
+          <History size={16} />
+        </ActionButton>
+      )}
       
       <ActionButton 
       variant="delete"

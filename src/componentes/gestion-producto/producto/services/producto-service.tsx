@@ -4,6 +4,7 @@ import axiosConfig from "../../../../utils/axiosConfig";
 import { createCrudService } from "../../../../utils/crudFactory";
 import { ProductoPayload } from "../interfaces/interfaces-validaciones-producto";
 import ApiService from "../../../../utils/apiService";
+import { HistorialPrecio } from "../../../../interfaces/gestion-producto/historial-precios/interfaces-historial-precios";
 
 
 const apiUrl = axiosConfig.apiUrl;
@@ -12,6 +13,10 @@ const baseService = createCrudService<ProductoPayload>("producto");
 
 const ProductoService = {
   ...baseService,
+
+  // CR-007: cambios de precio del producto, del más reciente al más antiguo
+  obtenerHistorialPrecios: (id: number): Promise<HistorialPrecio[]> =>
+    ApiService.get(`/producto/${id}/historial-precios`),
 
   
   obtenerMobile: async (filtros: any) => {

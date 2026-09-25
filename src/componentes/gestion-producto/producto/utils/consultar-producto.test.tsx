@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ConsultarProductos from "./consultar-producto";
@@ -66,6 +66,11 @@ describe("ConsultarProductos - búsqueda (CR-004)", () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     servicio.obtener.mockResolvedValue({ data: [producto(1, "leche entera")], total: 1 } as never);
   });
+
+  // ag-grid anima las filas con un window.setTimeout de 400 ms que después encadena otro:
+  // se deja terminar antes de que Vitest cierre jsdom (si no, falla de forma intermitente
+  // con "window is not defined")
+  afterAll(() => new Promise((resolve) => setTimeout(resolve, 600)));
 
   it("usa un único campo de búsqueda con el placeholder de producto, línea o superlínea", async () => {
     renderPantalla();
