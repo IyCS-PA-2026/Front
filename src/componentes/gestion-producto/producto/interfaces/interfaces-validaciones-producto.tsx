@@ -15,7 +15,7 @@ export interface FormValues {
   codigoBarra?: string | null;
   stock?: number | null;
   costo?: number | null;
-  precio?: number | null;
+  // Margen (%). El precio no se envía: lo calcula el backend a partir de costo y margen (CR-006)
   porcentaje?: number | null;
   /* costoEnDolar?: boolean | null;
   costoDolar?: number | null;
@@ -81,12 +81,7 @@ export const schema = (utilizaStockMinimo: boolean, usaOferta: boolean) =>
     codigoBarra: yup.string().optional().max(255, "Máximo 255 caracteres.").nullable(),
     stock: yup.number().optional().nullable(),
     costo: yup.number().typeError("El costo debe ser un valor númerico").required("El costo es obligatorio").min(0,"El costo debe ser mayor o igual a 0"),
-    precio: yup.number().typeError("El precio debe ser un valor númerico").required("El precio es obligatorio").min(0,"El costo debe ser mayor o igual a 0").test("precio-mayor-o-igual-costo","El precio debe ser mayor o igual que el costo", function(value){
-      const {costo} = this.parent;
-      if (value==null || costo == null ) return true;
-      return value>= costo;
-    }),
-    porcentaje: yup.number().typeError("El porcentaje debe ser un valor númerico").min(0,"El porcentaje mínimo debe ser mayor o igual a 0").max(999, "El porcentaje máximo permitido es de 999").optional().nullable(),
+    porcentaje: yup.number().typeError("El margen debe ser un valor númerico").min(0,"El margen debe ser mayor o igual a 0").max(999.99, "El margen máximo permitido es de 999,99").optional().nullable(),
     /* costoEnDolar: yup.boolean().optional().nullable(),
     costoDolar: yup.number().optional().nullable(),
     destacado: yup.boolean().optional().nullable(),
@@ -184,7 +179,6 @@ export const transformData = (producto: Producto): FormValues => {
     codigoBarra: producto.codigoBarra ?? null,
     stock: producto.stock ?? null,
     costo: producto.costo ?? null,
-    precio: producto.precio ?? null,
     porcentaje: producto.porcentaje ?? null,
    // oferta: producto.oferta ?? null,
     /* costoEnDolar: producto.costoEnDolar ?? null,

@@ -121,7 +121,6 @@ describe("RegistrarActualizarProductoForm - presentación (CR-002)", () => {
 
     await user.type(screen.getByLabelText("Denominación"), "Yerba Mate");
     fireEvent.change(inputPorNombre("costo"), { target: { value: "100" } });
-    fireEvent.change(inputPorNombre("precio"), { target: { value: "150" } });
     fireEvent.change(inputPorNombre("presentacionCantidad"), { target: { value: "0,5" } });
     await user.type(inputUnidadMedida(), "Kg");
 
@@ -147,7 +146,38 @@ describe("RegistrarActualizarProductoForm - presentación (CR-002)", () => {
     expect(payload).not.toHaveProperty("cantidadPorPack");
     expect(payload).not.toHaveProperty("presentacionCantidad");
     expect(payload).not.toHaveProperty("presentacionUnidadMedida");
+    // CR-006: el precio lo calcula el backend
+    expect(payload).not.toHaveProperty("precio");
     await waitFor(() => expect(onSuccess).toHaveBeenCalledWith("Producto registrado"));
+  });
+
+  it("al abrirse lista todas las líneas y marcas sin tener que buscar", async () => {
+    renderFormulario();
+
+    await waitFor(() => {
+      expect(servicio.obtenerTotales).toHaveBeenCalledWith({ denominacion: " " }, "lineas");
+      expect(servicio.obtenerTotales).toHaveBeenCalledWith({ denominacion: " " }, "marcas");
+    });
+
+    const [comboLinea, comboMarca] = screen.getAllByRole("combobox").slice(1, 3);
+    fireEvent.keyDown(comboLinea, { key: "ArrowDown" });
+    expect(await screen.findByText("Almacén")).toBeInTheDocument();
+    fireEvent.keyDown(comboMarca, { key: "ArrowDown" });
+    expect(await screen.findByText("Marca Test")).toBeInTheDocument();
+  });
+
+  it("el precio no se carga: en el alta se informa que se calcula y al editar se muestra el del backend", () => {
+    const { unmount } = render(
+      <ConfiguracionSistemaProvider>
+        <RegistrarActualizarProductoForm onClose={vi.fn()} onSuccess={vi.fn()} />
+      </ConfiguracionSistemaProvider>,
+    );
+    expect(inputPorNombre("precio")).toBeNull();
+    expect(screen.getByLabelText("Precio calculado")).toHaveTextContent("Se calcula al guardar");
+    unmount();
+
+    renderFormulario(productoExistente);
+    expect(screen.getByLabelText("Precio calculado")).toHaveTextContent("150");
   });
 
   it("al editar carga la presentación y la envía completa al actualizar", async () => {

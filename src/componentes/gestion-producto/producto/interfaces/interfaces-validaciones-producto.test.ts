@@ -11,7 +11,6 @@ const formValido = (overrides: Partial<FormValues> = {}): FormValues => ({
   lineaId: 1,
   marcaId: 2,
   costo: 100,
-  precio: 150,
   alicuotaIva: AlicuotaIva.ALICUOTA_21,
   presentacionCantidad: 1,
   presentacionUnidadMedida: "Kg",

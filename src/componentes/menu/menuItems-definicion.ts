@@ -67,6 +67,7 @@ export const menuItems: MenuItem[] = [
           { icon: Tag, label: "Marca", path: "marca" },
           { icon: Layers, label: "Líneas", path: "linea" },
           { icon: Network, label: "SuperLíneas", path: "superlinea" },
+          { icon: DollarSign, label: "Actualización de precios", path: "actualizacion-masiva-precios" },
         ],
         roles: [Rol.ADMINISTRADOR,Rol.ROOT,Rol.ROOT],
       },

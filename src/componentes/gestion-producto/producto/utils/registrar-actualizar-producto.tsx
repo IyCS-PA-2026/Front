@@ -37,6 +37,7 @@ import MarcasSelector from "../componentes/configuracion/marcas-selector";
 import { getUsuarioId } from "../../../../utils/auth";
 import RegistrarActualizarLineaForm from "../../linea/utils/registrar-actualizar-linea";
 import PorcentajeInput from "../../../herramientas/formateo-de-campos/porcentaje-input";
+import { formatPrice } from "../../../herramientas/formateo-de-campos/fucion-formateo";
 
 
 export default function RegistrarActualizarProductoForm({
@@ -129,6 +130,12 @@ export default function RegistrarActualizarProductoForm({
     setValue("stockMinimo", lineaSeleccionada.stockMinimo || 0);
     setValue("utilizaStockMinimo", lineaSeleccionada.utilizaStockMinimo || false);
   }, [lineaSeleccionada]);
+
+  // Al abrir el formulario se listan todas las líneas y marcas; el buscador solo filtra
+  useEffect(() => {
+    handleBuscarPorDenominacion("LINEA");
+    handleBuscarPorDenominacion("MARCA");
+  }, []);
 
   useEffect(() => {
     setStockCritico(utilizaStockMinimo || false);
@@ -373,17 +380,20 @@ export default function RegistrarActualizarProductoForm({
                     maxDigits={9}
                     disabled={producto && producto.sistema > 0 ? true : false}
                   />
-                  <PriceInput
-                    name="precio"
-                    label="Precio"
-                    value={watch("precio") || 0}
-                    onChange={(value) => setValue("precio", value, { shouldValidate: true })}
-                    maxDigits={9}
-                    disabled={producto && producto.sistema > 0 ? true : false}
-                  />
+                  {/* CR-006: el precio no se carga, lo deriva el backend de costo y margen */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-gray-700">Precio</span>
+                    <div
+                      aria-label="Precio calculado"
+                      className="w-full border border-gray-300 bg-gray-100 text-gray-700 rounded-lg px-3 py-2 text-sm"
+                    >
+                      {producto ? `$${formatPrice(producto.precio ?? 0)}` : "Se calcula al guardar"}
+                    </div>
+                    <span className="text-xs text-gray-500">Costo × (1 + margen / 100)</span>
+                  </div>
                   <PorcentajeInput
                     name="porcentaje"
-                    label="Porcentaje"
+                    label="Margen (%)"
                     value={watch("porcentaje") || 0}
                     onChange={(value) => setValue("porcentaje", value, { shouldValidate: true })}
                     disabled={producto && producto.sistema > 0 ? true : false}

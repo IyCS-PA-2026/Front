@@ -20,6 +20,7 @@ import CambioPreciosMasivo from "./componentes/gestion-producto/precios/cambio-p
 import DashboardHome from "./pages/dashboard-home";
 
 import ListaPrecios from "./componentes/gestion-producto/precios/lista_precios/util/lista-precios";
+import ActualizacionMasivaPrecios from "./componentes/gestion-producto/precios/actualizacion-masiva/actualizacion-masiva-precios";
 import ConsultarPersonal from "./componentes/gestion-organizacion/personal/utils/consultar-personal";
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
               <Route path="personal" element={<ConsultarPersonal />} />
               <Route path="cambio-precios-masivo" element={<CambioPreciosMasivo />} />
               <Route path="lista-precios" element={<ListaPrecios />} />
+              <Route path="actualizacion-masiva-precios" element={<ActualizacionMasivaPrecios />} />
               <Route path="localidad" element={<ConsultarLocalidad />} />
               <Route path="condicion-iva" element={<CondicionIva />} />     
 
