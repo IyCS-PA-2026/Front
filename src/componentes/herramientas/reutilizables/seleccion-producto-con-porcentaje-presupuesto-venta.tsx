@@ -455,10 +455,10 @@ export default function SeleccionProductoConPorcentajePresupuestoVenta({
               {formatCantidades(productoSeleccionado.stock ?? 0)}
             </span>
             <span>
-              {productoSeleccionado.utilizaPack && (
+              {productoSeleccionado.presentacion && (
                 <>
-                  <strong>Pack:</strong>{" "}
-                  {formatCantidades(productoSeleccionado.cantidadPorPack ?? 0)}
+                  <strong>Presentación:</strong>{" "}
+                  {productoSeleccionado.presentacion.cantidad} {productoSeleccionado.presentacion.unidadMedida}
                 </>
               )}
             </span>

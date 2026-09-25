@@ -23,10 +23,10 @@ const InfoProducto: React.FC = () => {
         {formatCantidades(productoSeleccionado.stock ?? 0)}
       </span>
 
-      {productoSeleccionado.utilizaPack && (
+      {productoSeleccionado.presentacion && (
         <span>
-          <strong>Cantidad Pack:</strong>{" "}
-          {formatCantidades(productoSeleccionado.cantidadPorPack ?? 0)}
+          <strong>Presentación:</strong>{" "}
+          {productoSeleccionado.presentacion.cantidad} {productoSeleccionado.presentacion.unidadMedida}
         </span>
       )}
 

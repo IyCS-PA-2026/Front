@@ -6,9 +6,12 @@ import { Button } from "../../../ui/Button";
 import FormInput from "../../../herramientas/formateo-de-campos/form-input";
 import React from "react";
 import { Card } from "../../../ui/Card";
-import { FormValues, schema, transformData, SublineasEnPayload, transformarSublineas } from "../interfaces/interfaces-validaciones-linea";
+import { FormValues, schema, transformData, construirPayloadLinea } from "../interfaces/interfaces-validaciones-linea";
 import LineaService from "../services/linea-service";
+import SuperLineaService from "../../superlinea/services/superlinea-service";
 import { Linea } from "../../../../interfaces/gestion-producto/linea/interfaces-linea";
+import { SelectSuperLinea } from "../../../../interfaces/gestion-producto/superlinea/interfaces-superlinea";
+import { SuperLineaSelector } from "../componentes/superlinea-selector";
 
 import { Layers, PlusCircle } from "lucide-react";
 import { parseApiError } from "../../../../utils/errores";
@@ -34,10 +37,12 @@ export default function RegistrarActualizarLineaForm({
   const usuarioId = getUsuarioId();
   const { showConfirmation, AlertasConfirmacion } = useConfirmation();
   const [rStockCritico, setStockCritico] = useState(false);
+  const [superLineas, setSuperLineas] = useState<SelectSuperLinea[]>([]);
+  const [cargandoSuperLineas, setCargandoSuperLineas] = useState(false);
 
   const methods = useForm<FormValues>({
     resolver: yupResolver(schema(rStockCritico)) as any,
-    defaultValues: linea ? transformData(linea) : {},
+    defaultValues: linea ? transformData(linea) : { superLineaId: null },
   });
 
   const {
@@ -79,16 +84,35 @@ export default function RegistrarActualizarLineaForm({
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const cargarSuperLineas = async () => {
+      setCargandoSuperLineas(true);
+      try {
+        const activas = await SuperLineaService.obtenerActivas();
+        const opciones = activas.map(({ id, denominacion }) => ({ id, denominacion }));
+        // Conserva la SuperLínea actual de la Línea aunque no venga en el listado de activas.
+        const actual = linea?.superLinea;
+        if (actual && actual.id > 0 && !opciones.some((o) => o.id === actual.id)) {
+          opciones.unshift({ id: actual.id, denominacion: actual.denominacion });
+        }
+        setSuperLineas(opciones);
+      } catch (error) {
+        setError("root", { type: "manual", message: parseApiError(error) });
+      } finally {
+        setCargandoSuperLineas(false);
+      }
+    };
+    cargarSuperLineas();
+  }, []);
+
   const onSubmit = async (formData: FormValues) => {
     let response: ResponsePost;
     try {
-     
+      const payload = construirPayloadLinea(formData, usuarioId, !!linea);
 
       if (linea) {
-        const payload = { ...formData, usuarioUpdatedId: usuarioId };
         response = await LineaService.actualizar(linea.id, payload);
       } else {
-        const payload = { ...formData, usuarioCreatedId: usuarioId };
         response = await LineaService.nuevo(payload);
       }
       onClose();
@@ -151,6 +175,14 @@ export default function RegistrarActualizarLineaForm({
                     value={stockMinimo || 0}
                     onChange={(value) => setValue("stockMinimo", Number(value))}
                     disabled={utilizaStockMinimo ? false : true}
+                  />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <SuperLineaSelector
+                    superLineas={superLineas}
+                    loading={cargandoSuperLineas}
+                    disabled={linea?.sistema === 1}
                   />
                 </div>
               </CardContent>

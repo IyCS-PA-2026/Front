@@ -7,6 +7,7 @@ import {
 import type { Linea } from "../../../../interfaces/gestion-producto/linea/interfaces-linea";
 import { ActionButton } from "../../../herramientas/reutilizables/action-button";
 import { formatFechaHora } from "../../../herramientas/formateo-de-campos/fucion-formateo";
+import { denominacionSuperLinea } from "../interfaces/interfaces-validaciones-linea";
 
 interface Props {
   lineas: Linea[];
@@ -31,6 +32,12 @@ export function DatosTabla({ lineas, onEditar, onInfo, onDelete }: Props) {
           )}
         </div>
       ),
+    },
+    {
+      header: "SuperLínea",
+      accessor: "superLinea",
+      ...observacionesColumnProps,
+      formatFunction: ({ row }) => <span>{denominacionSuperLinea(row)}</span>,
     },
     {
       header: "Observación",

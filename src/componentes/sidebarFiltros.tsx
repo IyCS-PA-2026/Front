@@ -87,6 +87,10 @@ export function SidebarFiltros({ isOpen, onClose, onOpen }: Omit<SidebarProps, "
   const { lineas, sublineas, marcas, clientes, proveedores, condicionesIva, provincias, familiasBanco } =
     useCatalogosContext();
 
+  // CR-004: en Productos, el mismo texto busca por producto, línea o superlínea (el backend combina con OR)
+  const placeholderDenominacion =
+    buscar.componente === "consultar-producto" ? "Buscar por producto, línea o superlínea..." : "Denominación...";
+
   const handleLimpiarFiltros = () => {
     limpiarFiltros();
     setBuscar({ cont: buscar.cont + 1, componente: buscar.componente });
@@ -283,7 +287,7 @@ export function SidebarFiltros({ isOpen, onClose, onOpen }: Omit<SidebarProps, "
                               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                               <Input
                                 type="text"
-                                placeholder="Denominación..."
+                                placeholder={placeholderDenominacion}
                                 name="denominacion"
                                 className="pl-10 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
                                 value={valoresFiltros.denominacion || ""}

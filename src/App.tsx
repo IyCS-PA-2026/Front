@@ -12,6 +12,7 @@ import ConsultarCliente from "./componentes/gestion-organizacion/cliente/utils/c
 import ConsultarProveedores from "./componentes/gestion-organizacion/proveedor/utils/consultar-proveedor";
 import ConsultarLocalidad from "./componentes/gestion-organizacion/localidad/utils/consultar-localidad";
 import ConsultarLinea from "./componentes/gestion-producto/linea/utils/consultar-linea";
+import ConsultarSuperLineas from "./componentes/gestion-producto/superlinea/utils/consultar-superlinea";
 
 import PrivateRoute from "./utils/PrivateRoute";
 import { Rol } from "./interfaces/generales/interfaces-generales";
@@ -19,6 +20,7 @@ import CambioPreciosMasivo from "./componentes/gestion-producto/precios/cambio-p
 import DashboardHome from "./pages/dashboard-home";
 
 import ListaPrecios from "./componentes/gestion-producto/precios/lista_precios/util/lista-precios";
+import ActualizacionMasivaPrecios from "./componentes/gestion-producto/precios/actualizacion-masiva/actualizacion-masiva-precios";
 import ConsultarPersonal from "./componentes/gestion-organizacion/personal/utils/consultar-personal";
 
 function App() {
@@ -42,6 +44,7 @@ function App() {
               </Route>
      
               <Route path="linea" element={<ConsultarLinea />} />
+              <Route path="superlinea" element={<ConsultarSuperLineas />} />
               <Route path="usuario" element={<GestionUsuario />} />
               <Route path="producto" element={<ConsultarProducto />} />
               <Route path="cliente" element={<ConsultarCliente />} />
@@ -49,6 +52,7 @@ function App() {
               <Route path="personal" element={<ConsultarPersonal />} />
               <Route path="cambio-precios-masivo" element={<CambioPreciosMasivo />} />
               <Route path="lista-precios" element={<ListaPrecios />} />
+              <Route path="actualizacion-masiva-precios" element={<ActualizacionMasivaPrecios />} />
               <Route path="localidad" element={<ConsultarLocalidad />} />
               <Route path="condicion-iva" element={<CondicionIva />} />     
 

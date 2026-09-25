@@ -1,4 +1,4 @@
-# frontend/Dockerfile.dev
+# Imagen de desarrollo (la levanta Back/proyecto/docker-compose.yml)
 FROM node:20-alpine
 
 # Instalar inotify-tools para que Vite pueda detectar cambios
@@ -7,11 +7,11 @@ RUN apk add --no-cache inotify-tools
 # Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copiar los archivos de definición de dependencias
-COPY package*.json ./
+# Copiar los archivos de definición de dependencias (el proyecto usa yarn)
+COPY package.json yarn.lock ./
 
-# Instalar dependencias con npm
-RUN npm install
+# Instalar dependencias respetando el lockfile
+RUN yarn install --frozen-lockfile
 
 # Copiar el resto del proyecto
 COPY . .
@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 5173
 
 # Comando para iniciar Vite en modo desarrollo
-CMD ["npm", "run", "dev"]
+CMD ["yarn", "dev"]

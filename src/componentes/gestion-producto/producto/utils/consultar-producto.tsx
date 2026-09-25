@@ -304,9 +304,8 @@ export default function ConsultarProductos() {
     }
   };
 
+  // CR-007: el historial es de solo lectura; cerrarlo no debe borrar los filtros de búsqueda
   const handleCerrarHistorialPrecios = () => {
-    setBuscar({ cont: 0, componente: "consultar-producto" });
-    limpiarFiltros();
     setMostrarHistorialPrecios(false);
     setProductoInfo({} as Producto);
   };
@@ -410,7 +409,8 @@ export default function ConsultarProductos() {
       marcaId: valoresFiltros.marcaId,
       proveedorId: valoresFiltros.proveedorId,
       conStock: valoresFiltros.conStock,
-      skip: skip,
+      // Una búsqueda nueva siempre arranca en la primera página (resetearPaginacion es asíncrono)
+      skip: botonBuscar ? 0 : skip,
       take: take,
     };
 
