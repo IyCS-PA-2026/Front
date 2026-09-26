@@ -87,10 +87,17 @@ describe("RegistrarActualizarProductoForm - presentación (CR-002)", () => {
     renderFormulario();
 
     expect(grupoPresentacion()).toBeInTheDocument();
+    expect(screen.getByText(/se generará al guardar/i)).toBeInTheDocument();
     expect(inputUnidadMedida()).toBeInTheDocument();
     expect(grupoPresentacion()).toContainElement(inputPorNombre("presentacionCantidad"));
     expect(screen.queryByText("Cantidad Pack")).not.toBeInTheDocument();
     expect(inputPorNombre("cantidadPorPack")).toBeNull();
+  });
+
+  it("en edición no muestra la ayuda de denominación automática", () => {
+    renderFormulario(productoExistente);
+
+    expect(screen.queryByText(/se generará al guardar/i)).not.toBeInTheDocument();
   });
 
   it("no registra si falta la presentación y muestra los errores", async () => {
@@ -178,6 +185,29 @@ describe("RegistrarActualizarProductoForm - presentación (CR-002)", () => {
 
     renderFormulario(productoExistente);
     expect(screen.getByLabelText("Precio calculado")).toHaveTextContent("150");
+  it("registra un producto sin denominación manual para que el backend la genere", async () => {
+    const user = userEvent.setup();
+    renderFormulario();
+
+    fireEvent.change(inputPorNombre("costo"), { target: { value: "100" } });
+    fireEvent.change(inputPorNombre("precio"), { target: { value: "150" } });
+    fireEvent.change(inputPorNombre("presentacionCantidad"), { target: { value: "1" } });
+    await user.type(inputUnidadMedida(), "pack x6");
+
+    const [denominacionLinea, denominacionMarca] = screen.getAllByPlaceholderText("Denominación");
+    await user.type(denominacionLinea, "alm{Enter}");
+    await waitFor(() => expect(servicio.obtenerTotales).toHaveBeenCalledWith({ denominacion: "alm" }, "lineas"));
+    await seleccionarOpcion(1, "Almacén");
+    await user.type(denominacionMarca, "mar{Enter}");
+    await waitFor(() => expect(servicio.obtenerTotales).toHaveBeenCalledWith({ denominacion: "mar" }, "marcas"));
+    await seleccionarOpcion(2, "Marca Test");
+
+    await user.click(screen.getByRole("button", { name: "Registrar" }));
+
+    await waitFor(() => expect(servicio.nuevo).toHaveBeenCalledTimes(1));
+    const payload = servicio.nuevo.mock.calls[0][0];
+    expect(payload.denominacion).toBeUndefined();
+    expect(payload.presentacion).toEqual({ cantidad: 1, unidadMedida: "pack x6" });
   });
 
   it("al editar carga la presentación y la envía completa al actualizar", async () => {

@@ -60,7 +60,7 @@ export default function RegistrarActualizarProductoForm({
   console.log("Configuración del sistema:", configuracion);
 
   const methods = useForm<FormValues>({
-    resolver: yupResolver(schema(rStockCritico, usaOferta)),
+    resolver: yupResolver(schema(rStockCritico, usaOferta, Boolean(producto))),
     defaultValues: producto
       ? transformData(producto)
       : {
@@ -328,6 +328,11 @@ export default function RegistrarActualizarProductoForm({
                         onKeyDown={enterToObservacion}
                         inputRef={denominacionProductoRef}
                       />
+                      {!producto && (
+                        <small className="text-gray-500">
+                          Si dejás este campo vacío, se generará al guardar con marca, línea y presentación.
+                        </small>
+                      )}
                     </div>
 
                     
