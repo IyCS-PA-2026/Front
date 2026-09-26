@@ -185,12 +185,14 @@ describe("RegistrarActualizarProductoForm - presentación (CR-002)", () => {
 
     renderFormulario(productoExistente);
     expect(screen.getByLabelText("Precio calculado")).toHaveTextContent("150");
+  });
+
+  // CR-005 sobre el formulario de CR-006: sin campo precio (lo calcula el backend)
   it("registra un producto sin denominación manual para que el backend la genere", async () => {
     const user = userEvent.setup();
     renderFormulario();
 
     fireEvent.change(inputPorNombre("costo"), { target: { value: "100" } });
-    fireEvent.change(inputPorNombre("precio"), { target: { value: "150" } });
     fireEvent.change(inputPorNombre("presentacionCantidad"), { target: { value: "1" } });
     await user.type(inputUnidadMedida(), "pack x6");
 
